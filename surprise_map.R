@@ -46,12 +46,14 @@ print(plot_geo(data, locationmode = 'USA-states') %>%
     geo = g
   ))
 }
-surpriseData <- data
+surpriseData <- c()
 startYear <- 1981
 
 pMs = c(.333,.333,.333)
 pMDs = c()
 pDMs = c()
+diffs = c()
+sumDiffs = c()
 
 boomYear <- data$X1998 
 bustYear <- data$X1981
@@ -61,38 +63,44 @@ for(i in 0:17) {
   yearSum  <- sum(eval(parse(text=paste0("data$X",year))))
   yearData <- eval(parse(text=paste0("data$X",year)))
   
-  for(i in 1:nrow(data)){
-    state <- eval(parse(text=paste0("data[i,]$X",year)))
-    diff1 <- (state/yearSum) - (yearMean/yearSum)
-    pDMs[1] = 1 - abs(diff1)
+  for(prop in 1:nrow(data)){
+    state <- eval(parse(text=paste0("data[prop,]$X",year)))
+    diffs[1] <- (state/yearSum) - (yearMean/yearSum)
+    pDMs[1] = 1 - abs(diffs[1])
     
-    diff2 =  (state/yearSum) - (boomYear[i]/yearSum)
-    pDMs[1] = 1 - abs(diff2)
+    diffs[2] =  (state/yearSum) - (boomYear[prop]/yearSum)
+    pDMs[2] = 1 - abs(diffs[2])
     
-    diff3 =  (state/yearSum) - (bustYear[i]/yearSum)
-    pDMs[1] = 1 - abs(diff3)
+    diffs[3] =  (state/yearSum) - (bustYear[prop]/yearSum)
+    pDMs[3] = 1 - abs(diffs[3])
     
-    pMDs[1] = pMs[1]*pDMs1
-    pMDs[2] = pMs[2]*pDMs2
-    pMDs[3] = pMs[3]*pDMs3
+    pMDs[1] = pMs[1]*pDMs[1]
+    pMDs[2] = pMs[2]*pDMs[2]
+    pMDs[3] = pMs[3]*pDMs[3]
     
     kl = 0
     voteSum = 0;
     for(j in 1:length(pMDs)){
-      kl = kl + (pMDs[j] * (log( pMDs[j] / pMs[0])/log(2)))
+      kl <-  kl + (pMDs[j] * (log( pMDs[j] / pMs[j]) / log(2)));
       voteSum  = voteSum + (diffs[j]*pMs[j])
       sumDiffs[j] = sumDiffs[j] + (abs(diffs[j]))
     }
-    #supriseData assignment is incorrect!
+    stateName <- data[prop,]$State
+    stateAbb <- state.abb[grep(stateName, state.name)]
+    if (stateName == 'District of Columbia'){
+      stateAbb <- 'DC'
+    }
+    if (stateName == 'Puerto Rico'){
+      stateAbb <- 'PC'
+    }
     if(voteSum >= 0){
-      surpriseData[prop][i] <- abs(kl)
+      eval(parse(text=paste0("surpriseData$",stateAbb,"$X",year," <-",abs(kl))))
+      
     }
     else{
-      surpriseData[prop][i] <- (-1* abs(kl))
+      eval(parse(text=paste0("surpriseData$",stateAbb,"$X",year," <-",(-1* abs(kl)))))
     }
-    
   }
-  
   }
 
   
