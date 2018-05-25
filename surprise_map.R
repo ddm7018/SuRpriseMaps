@@ -1,3 +1,6 @@
+library(usmap)
+library(ggplot2)
+
 bb2state <- function(name, convert = F, strict = F){
   data(state)
   # state data doesn't include DC
@@ -55,9 +58,12 @@ pDMs = c()
 diffs = c()
 sumDiffs = c()
 
+
+overallSurprise <- matrix(17,50)
 boomYear <- data$X1998 
 bustYear <- data$X1981
 for(i in 0:17) {
+  val <- c()
   year <- startYear + i
   yearMean <- mean(eval(parse(text=paste0("data$X",year))))
   yearSum  <- sum(eval(parse(text=paste0("data$X",year))))
@@ -93,14 +99,28 @@ for(i in 0:17) {
     if (stateName == 'Puerto Rico'){
       stateAbb <- 'PC'
     }
-    if(voteSum >= 0){
-      eval(parse(text=paste0("surpriseData$",stateAbb,"$X",year," <-",abs(kl))))
+   
+    if(voteSum >= 0 ){
+      val <- c(val,abs(kl))
       
     }
     else{
-      eval(parse(text=paste0("surpriseData$",stateAbb,"$X",year," <-",(-1* abs(kl)))))
+      val <- c(val, (-1* abs(kl)))
     }
+    
   }
-  }
+  overallSurprise[i] <- list(val)
+  
+}
+
+for(val in 0:17){
+eval(parse(text=paste0("statepop$X",val+1981," <- overallSurprise[",val+1,"][[1]][1:51]")))
+}
+
+map <- usmap::plot_usmap(data = statepop, values = "X1981") + 
+  scale_fill_gradient2(low="navy", mid="white", high="red", 
+                       midpoint=0, limits=range(-.01,.01)) +
+  theme(legend.position = "right")
+  
 
   
