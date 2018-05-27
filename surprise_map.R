@@ -55,11 +55,11 @@ startYear <- 1981
 pMs = c(.333,.333,.333)
 pMDs = c()
 pDMs = c()
-diffs = c()
-sumDiffs = c()
+diffs = c(0,0,0)
 
 
-overallSurprise <- matrix(17,50)
+
+overallSurprise <- matrix(18,50)
 boomYear <- data$X1998 
 bustYear <- data$X1981
 for(i in 0:17) {
@@ -86,6 +86,8 @@ for(i in 0:17) {
     
     kl = 0
     voteSum = 0;
+    sumDiffs = c(0,0,0)
+    
     for(j in 1:length(pMDs)){
       kl <-  kl + (pMDs[j] * (log( pMDs[j] / pMs[j]) / log(2)));
       voteSum  = voteSum + (diffs[j]*pMs[j])
@@ -99,7 +101,6 @@ for(i in 0:17) {
     if (stateName == 'Puerto Rico'){
       stateAbb <- 'PC'
     }
-   
     if(voteSum >= 0 ){
       val <- c(val,abs(kl))
       
@@ -109,18 +110,32 @@ for(i in 0:17) {
     }
     
   }
-  overallSurprise[i] <- list(val)
+  overallSurprise[i+1] <- list(val)
   
+  for(k in 1:3){
+    pDMs[k] = 1 - (0.5 * sumDiffs[k]);
+    pMDs[k] = pMs[k] * pDMs[k];
+    pMs[k] = pMDs[k];
+  }
+  
+  sum = sum(pMs)
+  for(j in 1:3){
+    pMs[j] = pMs[j]/sum
+  }
+  
+  #uniform.pM.push(pMs[0]);
+  #boom.pM.push(pMs[1]);
+  #bust.pM.push(pMs[2]);
 }
 
 for(val in 0:17){
 eval(parse(text=paste0("statepop$X",val+1981," <- overallSurprise[",val+1,"][[1]][1:51]")))
 }
 
-map <- usmap::plot_usmap(data = statepop, values = "X1981") + 
-  scale_fill_gradient2(low="navy", mid="white", high="red", 
-                       midpoint=0, limits=range(-.01,.01)) +
-  theme(legend.position = "right")
+#map <- usmap::plot_usmap(data = statepop, values = "X1981") + 
+#  scale_fill_gradient2(low="navy", mid="white", high="red", 
+#                       midpoint=0, limits=range(-.01,.01)) +
+#  theme(legend.position = "right")
   
 
   
